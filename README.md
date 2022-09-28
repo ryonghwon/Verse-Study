@@ -1,2 +1,0 @@
-# Verse-Study
-Verse Study
