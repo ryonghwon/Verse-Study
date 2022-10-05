@@ -1,4 +1,4 @@
-import {Application} from 'express'
+import { Application } from 'express'
 
 import main from './pages/main'
 import posts from './pages/posts'
