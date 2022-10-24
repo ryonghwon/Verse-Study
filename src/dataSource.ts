@@ -1,8 +1,14 @@
 import { DataSource } from 'typeorm'
 import config from '../config'
 import VerseEntity from './base/entities/verse.entity'
+import UserEntity from './users/entities/user.entity'
 import PicturesEntity from './common/entities/pictures.entity'
+import RequestEntity from './request/entities/request.entity'
 import CityEntity from './posts/entities/city.entity'
+import TypeImagesEntity from './posts/entities/typeImages.entity'
+import TypeVideosEntity from './posts/entities/typeVideos.entity'
+import TypeArticlesEntity from './posts/entities/typeArticles.entity'
+import PostsEntity from './posts/entities/posts.entity'
 
 export const dataSource = new DataSource({
   type: config.DOMAIN_MYSQL_TYPE,
@@ -13,5 +19,15 @@ export const dataSource = new DataSource({
   password: config.DOMAIN_MYSQL_PASSWORD,
   synchronize: false,
   logging: true,
-  entities: [VerseEntity, PicturesEntity, CityEntity]
+  entities: [
+    VerseEntity,
+    UserEntity,
+    PicturesEntity,
+    RequestEntity,
+    CityEntity,
+    TypeImagesEntity,
+    TypeVideosEntity,
+    TypeArticlesEntity,
+    PostsEntity
+  ]
 })
