@@ -3,7 +3,7 @@ import { IsNumber, IsOptional, IsString } from 'class-validator'
 import CoreEntity from '../../common/entities/core.entity'
 
 @Entity({ name: 'Users' })
-export default class UserEntity extends CoreEntity {
+export default class UsersEntity extends CoreEntity {
   public static STATUS = {
     CLIENT: 0,
     OWNER: 1
@@ -31,7 +31,7 @@ export default class UserEntity extends CoreEntity {
   @IsOptional()
   email: string
 
-  @Column({ type: 'int', nullable: false, default: UserEntity.STATUS.CLIENT })
+  @Column({ type: 'int', nullable: false, default: UsersEntity.STATUS.CLIENT })
   @IsNumber()
   status: number
 }
