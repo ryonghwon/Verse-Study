@@ -8,7 +8,36 @@ export default class CityService {
     const query = dataSource
       .getRepository(CityEntity)
       .createQueryBuilder('city')
-      .where('city.id = :id', { id })
+      // .where('city.id = :id', { id })
+      .select(['city.id', 'city.name'])
+      .where({ id })
+    return query.getOne()
+  }
+
+  public getPreviousCityById(id: number) {
+    const query = dataSource
+      .getRepository(CityEntity)
+      .createQueryBuilder('city')
+      .select(['city.id', 'city.name'])
+      .where('city.id < :id', { id })
+    return query.getOne()
+  }
+
+  public getNextCityById(id: number) {
+    const query = dataSource
+      .getRepository(CityEntity)
+      .createQueryBuilder('city')
+      .select(['city.id', 'city.name'])
+      .where('city.id < :id', { id })
+    return query.getOne()
+  }
+
+  public getCityByName(name: string) {
+    const query = dataSource
+      .getRepository(CityEntity)
+      .createQueryBuilder('city')
+      .select(['city.id', 'city.name'])
+      .where({ name })
     return query.getOne()
   }
 
@@ -25,13 +54,29 @@ export default class CityService {
       typeof limit === 'number' &&
       limit >= 0
     ) {
-      query.offset(offset)
-      query.limit(limit)
+      query.skip(offset)
+      query.take(limit)
     }
     return query.getMany()
   }
 
   public getCityCount() {
     return dataSource.getRepository(CityEntity).count()
+  }
+
+  public createCity(name: string) {
+    const city = new CityEntity()
+    city.name = name
+    return city.save()
+  }
+
+  public updateCity(id: number, name: string) {
+    return dataSource.getRepository(CityEntity).update(id, {
+      name
+    })
+  }
+
+  public deleteCity(id: number) {
+    return dataSource.getRepository(CityEntity).delete(id)
   }
 }

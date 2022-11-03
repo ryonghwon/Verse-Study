@@ -27,13 +27,33 @@ export default class RequestService {
       typeof limit === 'number' &&
       limit >= 0
     ) {
-      query.offset(offset)
-      query.limit(limit)
+      query.skip(offset)
+      query.take(limit)
     }
     return query.getMany()
   }
 
   public getRequestCount() {
     return dataSource.getRepository(RequestEntity).count()
+  }
+
+  public createRequest(
+    name: string,
+    email: string,
+    phone: string,
+    message: string,
+    company: string = ''
+  ) {
+    const request = new RequestEntity()
+    request.name = name
+    request.email = email
+    request.phone = phone
+    request.company = company
+    request.message = message
+    return request.save()
+  }
+
+  public deleteRequest(id: number) {
+    return dataSource.getRepository(RequestEntity).delete(id)
   }
 }

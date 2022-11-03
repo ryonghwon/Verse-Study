@@ -5,6 +5,11 @@ import CoreEntity from '../../common/entities/core.entity'
 @Entity({ name: 'Users' })
 export default class UsersEntity extends CoreEntity {
   public static STATUS = {
+    ACTIVE: 0,
+    WITHDRAW: 1
+  }
+
+  public static ROLE = {
     CLIENT: 0,
     OWNER: 1
   }
@@ -31,7 +36,11 @@ export default class UsersEntity extends CoreEntity {
   @IsOptional()
   email: string
 
-  @Column({ type: 'int', nullable: false, default: UsersEntity.STATUS.CLIENT })
+  @Column({ type: 'int', nullable: false, default: UsersEntity.STATUS.ACTIVE })
   @IsNumber()
   status: number
+
+  @Column({ type: 'int', nullable: false, default: UsersEntity.ROLE.CLIENT })
+  @IsNumber()
+  role: number
 }

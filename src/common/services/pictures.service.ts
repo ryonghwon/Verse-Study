@@ -9,7 +9,36 @@ export default class PicturesService {
     const query = dataSource
       .getRepository(PicturesEntity)
       .createQueryBuilder('pictures')
-      .where('pictures.id = :id', { id })
+      .where({ id })
     return query.getOne()
+  }
+
+  public getPictureByIdAndSelect(id: number) {
+    const query = dataSource
+      .getRepository(PicturesEntity)
+      .createQueryBuilder('pictures')
+      .select(['pictures.id', 'pictures.url'])
+      .where({ id })
+    return query.getOne()
+  }
+
+  public addPicture(
+    name: string,
+    stored_name: string,
+    stored_path: string,
+    mime_type: string,
+    url: string
+  ) {
+    const picture = new PicturesEntity()
+    picture.name = name
+    picture.stored_name = stored_name
+    picture.stored_path = stored_path
+    picture.mime_type = mime_type
+    picture.url = url
+    return picture.save()
+  }
+
+  public removePicture(picture: PicturesEntity) {
+    return dataSource.getRepository(PicturesEntity).remove(picture)
   }
 }

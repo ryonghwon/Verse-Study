@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm'
 import config from '../config'
 import VerseEntity from './base/entities/verse.entity'
-import UserEntity from './users/entities/user.entity'
+import UsersEntity from './users/entities/users.entity'
 import PicturesEntity from './common/entities/pictures.entity'
 import RequestEntity from './request/entities/request.entity'
 import CityEntity from './posts/entities/city.entity'
@@ -21,7 +21,7 @@ export const dataSource = new DataSource({
   logging: true,
   entities: [
     VerseEntity,
-    UserEntity,
+    UsersEntity,
     PicturesEntity,
     RequestEntity,
     CityEntity,

@@ -1,3 +1,4 @@
+import { Brackets } from 'typeorm'
 import { Service } from 'typedi'
 import { dataSource } from '../../dataSource'
 import UsersEntity from '../entities/users.entity'
@@ -5,10 +6,21 @@ import UsersEntity from '../entities/users.entity'
 @Service()
 export default class UsersService {
   public getUserById(id: number) {
+    // return dataSource.getRepository(UsersEntity).findOne({ where: { id }})
     const query = dataSource
       .getRepository(UsersEntity)
       .createQueryBuilder('users')
-      .where('users.id = :id', { id })
+      // .where('users.id = :id', { id })
+      .where({ id })
+    return query.getOne()
+  }
+
+  public getUserByIdWithActiveStatus(id: number) {
+    const query = dataSource
+      .getRepository(UsersEntity)
+      .createQueryBuilder('users')
+      .where({ id })
+      .andWhere({ status: UsersEntity.STATUS.ACTIVE })
     return query.getOne()
   }
 
@@ -17,8 +29,17 @@ export default class UsersService {
       .getRepository(UsersEntity)
       .createQueryBuilder('users')
       .orderBy('users.id', 'DESC')
+      .where({ status: UsersEntity.STATUS.ACTIVE })
     if (search !== undefined) {
-      query.where('users.name like :name', { name: `%${search}%` })
+      // query.andWhere('users.name like :name', { name: `%${search}%` })
+      query.andWhere(
+        new Brackets((qb) => {
+          qb.where('users.name like :name', { name: `%${search}%` }).orWhere(
+            'users.nickname like :nickname',
+            { nickname: `%${search}%` }
+          )
+        })
+      )
     }
     if (
       offset !== undefined &&
@@ -28,8 +49,8 @@ export default class UsersService {
       typeof limit === 'number' &&
       limit >= 0
     ) {
-      query.offset(offset)
-      query.limit(limit)
+      query.skip(offset)
+      query.take(limit)
     }
     return query.getMany()
   }
@@ -42,5 +63,50 @@ export default class UsersService {
       query.where('users.name like :name', { name: `%${search}%` })
     }
     return query.getCount()
+  }
+
+  public createUser(
+    user_id: string,
+    password: string,
+    name: string,
+    nickname?: string,
+    email?: string
+  ) {
+    const user = new UsersEntity()
+    user.user_id = user_id
+    user.password = password
+    user.name = name
+    user.nickname = nickname
+    user.email = email
+    return user.save()
+  }
+
+  public updateUser(
+    id: number,
+    password: string,
+    name: string,
+    status: number,
+    role: number,
+    nickname?: string,
+    email?: string
+  ) {
+    return dataSource.getRepository(UsersEntity).update(id, {
+      password,
+      name,
+      status,
+      role,
+      nickname,
+      email
+    })
+  }
+
+  public removeUser(user: UsersEntity) {
+    return dataSource.getRepository(UsersEntity).remove(user)
+  }
+
+  public withdrawUser(id: number) {
+    return dataSource.getRepository(UsersEntity).update(id, {
+      status: UsersEntity.STATUS.WITHDRAW
+    })
   }
 }
