@@ -33,6 +33,24 @@ export default class PostsService {
     return query.getOne()
   }
 
+  public getPreviousPostByIdAfterOrderByPublishedAt(id: number) {
+    const query = dataSource
+      .getRepository(PostsEntity)
+      .createQueryBuilder('posts')
+      .where('posts.id < :id', { id })
+      .orderBy('posts.published_at', 'DESC')
+    return query.getOne()
+  }
+
+  public getNextPostByIdAfterOrderByPublishedAt(id: number) {
+    const query = dataSource
+      .getRepository(PostsEntity)
+      .createQueryBuilder('posts')
+      .where('posts.id > :id', { id })
+      .orderBy('posts.published_at', 'DESC')
+    return query.getOne()
+  }
+
   public getPostsList(search?: string, offset?: number, limit?: number) {
     const query = dataSource
       .getRepository(PostsEntity)

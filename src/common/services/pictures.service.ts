@@ -38,6 +38,14 @@ export default class PicturesService {
     return picture.save()
   }
 
+  public addUploadFile(uploadFile: any) {
+    return this.addPicture('','','','','')
+  }
+
+  public addUploadFileWithS3(uploadFile: any) {
+    return this.addPicture('','','','','')
+  }
+
   public removePicture(picture: PicturesEntity) {
     return dataSource.getRepository(PicturesEntity).remove(picture)
   }
