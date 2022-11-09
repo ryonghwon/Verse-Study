@@ -45,6 +45,7 @@ export default class CityService {
     const query = dataSource
       .getRepository(CityEntity)
       .createQueryBuilder('city')
+      .select(['city.id', 'city.name'])
       .orderBy('city.id', 'DESC')
     if (
       offset !== undefined &&

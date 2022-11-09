@@ -2,7 +2,7 @@ import { Brackets } from 'typeorm'
 import { Service } from 'typedi'
 import { dataSource } from '../../dataSource'
 import UsersEntity from '../entities/users.entity'
-import {passwordHash} from "../../utils/passwordHash";
+import { passwordHash } from '../../utils/passwordHash'
 
 @Service()
 export default class UsersService {
