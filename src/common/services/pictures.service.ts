@@ -58,7 +58,14 @@ export default class PicturesService {
   }
 
   public addUploadFileWithS3(uploadFile: any) {
-    return this.addPicture('', '', '', '', '')
+    if (uploadFile !== undefined) {
+      // console.log(uploadFile)
+      const { originalname: name, key, location: url, mimetype } = uploadFile
+      const storedPath = config.S3_DIRECTORY
+      const storedName = key.replace(`${storedPath}/`, '')
+      // console.log(name, storedName, storedPath, mimetype, url)
+      return this.addPicture(name, storedName, storedPath, mimetype, url)
+    }
   }
 
   public removePicture(picture: PicturesEntity) {
