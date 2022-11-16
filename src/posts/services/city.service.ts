@@ -41,12 +41,15 @@ export default class CityService {
     return query.getOne()
   }
 
-  public getCityList(offset?: number, limit?: number) {
+  public getCityList(search?: string, offset?: number, limit?: number) {
     const query = dataSource
       .getRepository(CityEntity)
       .createQueryBuilder('city')
       .select(['city.id', 'city.name'])
       .orderBy('city.id', 'DESC')
+    if (search !== undefined) {
+      query.where('city.name like :name', { name: `%${search}%`})
+    }
     if (
       offset !== undefined &&
       typeof offset === 'number' &&

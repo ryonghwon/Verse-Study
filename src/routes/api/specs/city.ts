@@ -14,13 +14,15 @@ router.get('/city/list', async (req: Request, res: Response) => {
   // const { page } = req.query
   const page =
     req.query.page !== undefined
-      ? APIUtils.numberOfThrow(Number(req.query.page))
+      ? APIUtils.numberOrThrow(Number(req.query.page))
       : 1
   const offset = page > 1 ? COUNT_PER_PAGE * (page - 1) : 0
   const cityService = Container.get(CityService)
   try {
-    const city = await cityService.getCityList(offset, COUNT_PER_PAGE)
+    const city = await cityService.getCityList(undefined, offset, COUNT_PER_PAGE)
+    console.log(`City List : ${city}`)
     const total = await cityService.getCityCount()
+    console.log(`Total Count : ${total}`)
     return res.json(APIResult({ city, total, page }))
   } catch (error) {
     return res.status(500).json(APIErrorResult(error.message))
@@ -45,6 +47,7 @@ router.post('/city/create', async (req: Request, res: Response) => {
   }
   try {
     const city = await cityService.createCity(name)
+    console.log(`Create City : ${city}`)
     return res.json(APIResult({ id: city.id }))
   } catch (error) {
     return res.status(500).json(APIErrorResult(error.message))
@@ -53,11 +56,11 @@ router.post('/city/create', async (req: Request, res: Response) => {
 
 // /:city_id -> params
 router.get('/city/:city_id', async (req: Request, res: Response) => {
-  const id = APIUtils.numberOfThrow(Number(req.params.city_id))
+  const id = APIUtils.numberOrThrow(Number(req.params.city_id))
   const cityService = Container.get(CityService)
   try {
     const city = await cityService.getCityById(id)
-    console.log(city)
+    console.log(`Get City : ${city}`)
     if (city !== undefined && city !== null) {
       return res.json(APIResult({ city }))
     }
@@ -72,9 +75,9 @@ router.get('/city/:city_id', async (req: Request, res: Response) => {
 // { name: '' }
 router.patch('/city/:city_id', async (req: Request, res: Response) => {
   const { name } = req.body
-  const id = APIUtils.numberOfThrow(Number(req.params.city_id))
+  const id = APIUtils.numberOrThrow(Number(req.params.city_id))
   // name 유효성 검증.
-  // name 이 없거나, 빈 값.
+  // name이 없거나 빈 값.
   if (name === undefined || name.trim() === '') {
     return res.status(500).json(APIErrorResult('Please enter a name.'))
     // return res.status(500).json(APIErrorResult('name을 입력해주세요.'))
@@ -89,19 +92,20 @@ router.patch('/city/:city_id', async (req: Request, res: Response) => {
   }
   try {
     const city = await cityService.updateCity(id, name)
-    console.log(city)
+    console.log(`Update City : ${city}`)
     return res.json(APIResult({ result: true }))
   } catch (error) {
     return res.status(500).json(APIErrorResult(error.message))
   }
 })
 
+// /:city_id
 router.delete('/city/:city_id', async (req: Request, res: Response) => {
-  const id = APIUtils.numberOfThrow(Number(req.params.city_id))
+  const id = APIUtils.numberOrThrow(Number(req.params.city_id))
   const cityService = Container.get(CityService)
   try {
     const city = await cityService.deleteCity(id)
-    console.log(city)
+    console.log(`Delete City : ${city}`)
     return res.json(APIResult({ result: true }))
   } catch (error) {
     return res.status(500).json(APIErrorResult(error.message))
