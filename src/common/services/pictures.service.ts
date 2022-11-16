@@ -1,6 +1,8 @@
+import * as fs from 'fs'
 import { Service } from 'typedi'
 import { dataSource } from '../../dataSource'
 import PicturesEntity from '../entities/pictures.entity'
+import config from '../../../config'
 
 @Service()
 export default class PicturesService {
@@ -39,14 +41,28 @@ export default class PicturesService {
   }
 
   public addUploadFile(uploadFile: any) {
-    return this.addPicture('','','','','')
+    if (uploadFile !== undefined) {
+      const {
+        originalname: name,
+        destination: storedPath,
+        filename: storedName,
+        mimetype
+      } = uploadFile
+      let url = `${storedPath}/${storedName}`
+      const idx = storedPath.lastIndexOf('public/')
+      if (idx >= 0) {
+        url = url.substring(idx + 6)
+      }
+      return this.addPicture(name, storedName, storedPath, mimetype, url)
+    }
   }
 
   public addUploadFileWithS3(uploadFile: any) {
-    return this.addPicture('','','','','')
+    return this.addPicture('', '', '', '', '')
   }
 
   public removePicture(picture: PicturesEntity) {
+    fs.unlink(`${config.PROJECT_DIR}/public/upload/${picture.stored_name}`, () => {})
     return dataSource.getRepository(PicturesEntity).remove(picture)
   }
 }

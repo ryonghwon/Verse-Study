@@ -9,7 +9,7 @@ const router = Router()
 const COUNT_PER_PAGE = 20
 
 // ?page=1
-router.get('/requests/list', async (req: Request, res: Response) => {
+router.get('/request/list', async (req: Request, res: Response) => {
   const page =
     req.query.page !== undefined
       ? APIUtils.numberOrThrow(Number(req.query.page))
@@ -31,9 +31,17 @@ router.get('/requests/list', async (req: Request, res: Response) => {
   }
 })
 
+type RequestBody = {
+  name: string
+  email: string
+  phone: string
+  company?: string
+  message: string
+}
+
 // { name: '', email: '', phone: '', company: '', message: '' }
 router.get('/request/new', async (req: Request, res: Response) => {
-  let { name, email, phone, company, message } = req.body
+  let { name, email, phone, company, message }: RequestBody = req.body
   // name 유효성 검증.
   // name 이 없거나, 빈 값.
   if (name === undefined || name.trim() === '') {

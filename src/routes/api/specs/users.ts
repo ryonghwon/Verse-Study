@@ -94,7 +94,8 @@ router.patch('/user/withdraw/:user_id', async (req: Request, res: Response) => {
     const user = await usersService.getUserById(id)
     if (user !== undefined && user !== null) {
       if (user.status === 0) {
-        await usersService.withdrawUser(id)
+        const withdrawUser = await usersService.withdrawUser(id)
+        console.log(`Withdraw User : ${withdrawUser}`)
         return res.json(APIResult({ result: true }))
       }
       return res.status(500).json(APIErrorResult('User has already withdraw.'))
