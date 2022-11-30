@@ -10,14 +10,15 @@ export default class TypeVideosService {
       .getRepository(TypeVideosEntity)
       .createQueryBuilder('type_videos')
       .leftJoinAndSelect('type_videos.poster', 'poster')
-      .select([
-        'type_videos.video_id',
-        'type_videos.poster',
-        'type_videos.title',
-        'type_videos.description',
-        'poster.id',
-        'poster.url'
-      ])
+      /*-- 학습을 위한 select() --*/
+      // .select([
+      //   'type_videos.video_id',
+      //   'type_videos.poster',
+      //   'type_videos.title',
+      //   'type_videos.description',
+      //   'poster.id',
+      //   'poster.url'
+      // ])
       .where({ id })
     return query.getOne()
   }

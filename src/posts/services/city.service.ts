@@ -8,8 +8,8 @@ export default class CityService {
     const query = dataSource
       .getRepository(CityEntity)
       .createQueryBuilder('city')
-      // .where('city.id = :id', { id })
       .select(['city.id', 'city.name'])
+      // .where('city.id = :id', { id })
       .where({ id })
     return query.getOne()
   }
@@ -46,10 +46,10 @@ export default class CityService {
       .getRepository(CityEntity)
       .createQueryBuilder('city')
       .select(['city.id', 'city.name'])
-      .orderBy('city.id', 'DESC')
     if (search !== undefined) {
       query.where('city.name like :name', { name: `%${search}%`})
     }
+    query.orderBy('city.id', 'DESC')
     if (
       offset !== undefined &&
       typeof offset === 'number' &&

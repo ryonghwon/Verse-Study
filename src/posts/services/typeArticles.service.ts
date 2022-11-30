@@ -9,7 +9,8 @@ export default class TypeArticlesService {
     const query = dataSource
       .getRepository(TypeArticlesEntity)
       .createQueryBuilder('type_articles')
-      .where('type_articles.id = :id', { id })
+      .leftJoinAndSelect('type_articles.cover', 'cover')
+      .where({ id })
     return query.getOne()
   }
 

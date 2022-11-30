@@ -1,8 +1,8 @@
 import * as fs from 'fs'
 import { Service } from 'typedi'
+import config from '../../../config'
 import { dataSource } from '../../dataSource'
 import PicturesEntity from '../entities/pictures.entity'
-import config from '../../../config'
 
 @Service()
 export default class PicturesService {

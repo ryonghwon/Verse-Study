@@ -8,7 +8,7 @@ import config from '../../../../config'
 import PicturesService from '../../../common/services/pictures.service'
 import { APIErrorResult, APIResult } from '../APIResult'
 import APIUtils from '../../../utils/APIUtils'
-
+import PicturesEntity from "../../../common/entities/pictures.entity";
 
 const router = Router()
 
@@ -103,18 +103,37 @@ router.post(
 router.delete('/image/:image_id', async (req: Request, res: Response) => {
   const id = APIUtils.numberOrThrow(Number(req.params.image_id))
   const picturesService = Container.get(PicturesService)
-  try {
-    const picture = await picturesService.getPicture(id)
-    if (picture !== undefined && picture !== null) {
-      const removePicture = await picturesService.removePicture(picture)
-      console.log(`Remove Picture : ${removePicture}`)
-      return res.json(APIResult({ result: true }))
+  const s3DeleteObject = async () => {
+    try {
+      const picture = await picturesService.getPicture(id)
+      const { stored_path: storedPath, stored_name: storedName } = picture
+      s3.deleteObject(
+        {
+          Bucket: config.S3_BUCKET,
+          Key: `${storedPath}/${storedName}`
+        },
+        (error) => {
+          if (error) {
+            return res
+              .status(500)
+              .json(APIErrorResult('Failed to delete a S3 Bucket file.'))
+          }
+          return removePicture(picture)
+        }
+      )
+    } catch (_) {
+      return res.status(500).json(APIErrorResult('Image not found.'))
     }
-    return res.status(500).json(APIErrorResult('Image not found.'))
-    // return res.status(500).json(APIErrorResult('이미지를 찾을 수 없습니다.'))
-  } catch (error) {
-    return res.status(500).json(APIErrorResult(error.message))
   }
+  const removePicture = async (picture: PicturesEntity) => {
+    try {
+      await picturesService.removePicture(picture)
+      return res.json(APIResult({ result: true }))
+    } catch (error) {
+      return res.status(500).json(APIErrorResult(error.message))
+    }
+  }
+  return await s3DeleteObject()
 })
 
 export default router

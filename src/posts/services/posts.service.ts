@@ -9,7 +9,7 @@ import TypeArticlesEntity from '../entities/typeArticles.entity'
 
 @Service()
 export default class PostsService {
-  public getPostById(id: number) {
+  public getPostById(id: number, status = [PostsEntity.STATUS.PUBLIC]) {
     const query = dataSource
       .getRepository(PostsEntity)
       .createQueryBuilder('posts')
@@ -53,51 +53,108 @@ export default class PostsService {
         'posts.status'
       ])
       .where({ id })
+      .andWhere('posts.status IN(:status)', { status })
     return query.getOne()
   }
 
-  public getPreviousPostById(id: number) {
+  public getPreviousPostById(id: number, status = [PostsEntity.STATUS.PUBLIC]) {
     const query = dataSource
       .getRepository(PostsEntity)
       .createQueryBuilder('posts')
+      .leftJoinAndSelect('posts.thumbnail', 'thumbnail')
+      .select([
+        'posts.id',
+        'posts.title',
+        'thumbnail.id',
+        'thumbnail.url',
+        'posts.published_at'
+      ])
       .where('posts.id < :id', { id })
+      .andWhere('posts.status IN(:status)', { status })
     return query.getOne()
   }
 
-  public getNextPostById(id: number) {
+  public getNextPostById(id: number, status = [PostsEntity.STATUS.PUBLIC]) {
     const query = dataSource
       .getRepository(PostsEntity)
       .createQueryBuilder('posts')
+      .leftJoinAndSelect('posts.thumbnail', 'thumbnail')
+      .select([
+        'posts.id',
+        'posts.title',
+        'thumbnail.id',
+        'thumbnail.url',
+        'posts.published_at'
+      ])
       .where('posts.id > :id', { id })
+      .andWhere('posts.status IN(:status)', { status })
     return query.getOne()
   }
 
-  public getPreviousPostByIdAfterOrderByPublishedAt(id: number) {
+  public getPreviousPostByIdAfterOrderByPublishedAt(id: number, status = [PostsEntity.STATUS.PUBLIC]) {
     const query = dataSource
       .getRepository(PostsEntity)
       .createQueryBuilder('posts')
+      .leftJoinAndSelect('posts.thumbnail', 'thumbnail')
+      .select([
+        'posts.id',
+        'posts.title',
+        'thumbnail.id',
+        'thumbnail.url',
+        'posts.published_at'
+      ])
       .where('posts.id < :id', { id })
+      .andWhere('posts.status IN(:status)', { status })
       .orderBy('posts.published_at', 'DESC')
     return query.getOne()
   }
 
-  public getNextPostByIdAfterOrderByPublishedAt(id: number) {
+  public getNextPostByIdAfterOrderByPublishedAt(id: number, status = [PostsEntity.STATUS.PUBLIC]) {
     const query = dataSource
       .getRepository(PostsEntity)
       .createQueryBuilder('posts')
+      .leftJoinAndSelect('posts.thumbnail', 'thumbnail')
+      .select([
+        'posts.id',
+        'posts.title',
+        'thumbnail.id',
+        'thumbnail.url',
+        'posts.published_at'
+      ])
       .where('posts.id > :id', { id })
+      .andWhere('posts.status IN(:status)', { status })
       .orderBy('posts.published_at', 'DESC')
     return query.getOne()
   }
 
-  public getPostsList(search?: string, offset?: number, limit?: number) {
+  public getPostsList(
+    search?: string,
+    offset?: number,
+    limit?: number,
+    status = [PostsEntity.STATUS.PUBLIC]
+  ) {
     const query = dataSource
       .getRepository(PostsEntity)
       .createQueryBuilder('posts')
-      .orderBy('posts.id', 'DESC')
+      .leftJoinAndSelect('posts.thumbnail', 'thumbnail')
+      .leftJoinAndSelect('posts.city', 'city')
+      .select([
+        'posts.id',
+        'posts.type',
+        'posts.title',
+        'thumbnail.id',
+        'thumbnail.url',
+        'city.id',
+        'city.name',
+        'posts.published_at'
+      ])
+      .where('posts.status IN(:status)', { status })
     if (search !== undefined) {
-      query.where('posts.title like :title', { title: `%${search}%` })
+      query.andWhere('posts.title like :title', { title: `%${search}%` })
     }
+    query
+      // .orderBy('posts.id', 'DESC')
+      .orderBy('posts.published_at', 'DESC')
     if (
       offset !== undefined &&
       typeof offset === 'number' &&
@@ -112,12 +169,13 @@ export default class PostsService {
     return query.getMany()
   }
 
-  public getPostsCount(search?: string) {
+  public getPostsCount(search?: string, status = [PostsEntity.STATUS.PUBLIC]) {
     const query = dataSource
       .getRepository(PostsEntity)
       .createQueryBuilder('posts')
+      .where('posts.status IN(:status)', { status })
     if (search !== undefined) {
-      query.where('posts.title like :title', { title: `%${search}%` })
+      query.andWhere('posts.title like :title', { title: `%${search}%` })
     }
     return query.getCount()
   }
@@ -129,7 +187,7 @@ export default class PostsService {
     city: CityEntity,
     image_content: TypeImagesEntity,
     video_content: TypeVideosEntity,
-    article_content: TypeArticlesEntity,
+    article_content: TypeArticlesEntity
   ) {
     const post = new PostsEntity()
     post.type = type

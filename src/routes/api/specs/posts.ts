@@ -10,6 +10,7 @@ import TypeArticlesService from '../../../posts/services/typeArticles.service'
 import PostsService from '../../../posts/services/posts.service'
 import { APIErrorResult, APIResult } from '../APIResult'
 import APIUtils from '../../../utils/APIUtils'
+import UsersEntity from '../../../users/entities/users.entity'
 
 const router = Router()
 
@@ -27,15 +28,25 @@ router.get('/posts/list', async (req: Request, res: Response) => {
       ? APIUtils.numberOrThrow(Number(req.query.page))
       : 1
   const offset = page > 1 ? COUNT_PER_PAGE * (page - 1) : 0
+  const status =
+    req.query.role !== undefined &&
+    Number(req.query.role) === UsersEntity.ROLE.OWNER
+      ? [
+          PostsEntity.STATUS.DRAFT,
+          PostsEntity.STATUS.PRIVATE,
+          PostsEntity.STATUS.PUBLIC
+        ]
+      : [PostsEntity.STATUS.PUBLIC]
   const postsService = Container.get(PostsService)
   try {
     const posts: PostsEntity[] = await postsService.getPostsList(
       undefined,
       offset,
-      COUNT_PER_PAGE
+      COUNT_PER_PAGE,
+      status
     )
     console.log(`Posts List : ${posts}`)
-    const total = await postsService.getPostsCount()
+    const total = await postsService.getPostsCount(undefined, status)
     console.log(`Total Count : ${total}`)
     return res.json(APIResult({ posts, total, page }))
   } catch (error) {
@@ -164,9 +175,24 @@ router.post('/post/create', async (req: Request, res: Response) => {
 
 router.get('/post/:post_id', async (req: Request, res: Response) => {
   const id = APIUtils.numberOrThrow(Number(req.params.post_id))
+  const status =
+    req.query.role !== undefined &&
+    Number(req.query.role) === UsersEntity.ROLE.OWNER
+      ? [
+        PostsEntity.STATUS.DRAFT,
+        PostsEntity.STATUS.PRIVATE,
+        PostsEntity.STATUS.PUBLIC
+      ]
+      : [PostsEntity.STATUS.PUBLIC]
   const postsService = Container.get(PostsService)
   try {
-    const post = await postsService.getPostById(id)
+    const post = await postsService.getPostById(id, status)
+    const previousPost = await postsService.getPreviousPostById(id, status)
+    const nextPost = await postsService.getNextPostById(id, status)
+    const pagination = {
+      previous: previousPost,
+      next: nextPost
+    }
     if (post !== undefined && post !== null) {
       if (
         post.type === PostsEntity.TYPE.ARTICLE &&
@@ -177,9 +203,8 @@ router.get('/post/:post_id', async (req: Request, res: Response) => {
         post.article_content.content = await Promise.all(
           post.article_content.content.map(async (item) => {
             const { type, image: image_id } = item
-            console.log(type, item)
             if (type === CONTENT_TYPE.FIGURE) {
-              const image = await picturesService.getPicture(image_id)
+              const image = await picturesService.getPictureByIdAndSelect(image_id)
               return {
                 ...item,
                 image
@@ -189,19 +214,190 @@ router.get('/post/:post_id', async (req: Request, res: Response) => {
           })
         )
       }
+      return res.json(APIResult({ post, pagination }))
     }
-    return res.json(APIResult({ post }))
+    return res.status(500).json(APIErrorResult('Post not found.'))
   } catch (error) {
     return res.status(500).json(APIErrorResult(error.message))
   }
 })
 
-router.patch('/post/:post_id', (req: Request, res: Response) => {
-  return
+router.patch('/post/:post_id', async (req: Request, res: Response) => {
+  const id = APIUtils.numberOrThrow(Number(req.params.post_id))
+  const {
+    type,
+    thumbnail,
+    title,
+    city,
+    image_content,
+    video_content,
+    article_content,
+    published_at,
+    status
+  } = await setPostData(req.body)
+  if (type === undefined) {
+    return res.status(500).json(APIErrorResult('Please select a type.'))
+    // return res.status(500).json(APIErrorResult('type 을 선택해주세요.'))
+  }
+  if (thumbnail === undefined || thumbnail === null) {
+    return res
+      .status(500)
+      .json(APIErrorResult('Please upload a thumbnail image.'))
+    // return res.status(500).json(APIErrorResult('thumbnail 이미지를 업로드 해주세요.'))
+  }
+  if (title === undefined || title.trim() === '') {
+    return res.status(500).json(APIErrorResult('Please enter a title.'))
+    // return res.status(500).json(APIErrorResult('title 을 입력해주세요.'))
+  }
+  if (city === undefined || city === null) {
+    return res.status(500).json(APIErrorResult('Please select a city.'))
+    // return res.status(500).json(APIErrorResult('city 를 선택해주세요.'))
+  }
+  if (status === undefined) {
+    return res.status(500).json(APIErrorResult('Please select a status.'))
+    // return res.status(500).json(APIErrorResult('status 를 선택해주세요.'))
+  }
+  if (
+    type === PostsEntity.TYPE.IMAGE &&
+    (image_content === undefined || image_content === null)
+  ) {
+    return res.status(500).json(APIErrorResult('Please enter image content.'))
+    // return res.status(500).json(APIErrorResult('image content 를 입력해주세요.'))
+  }
+  if (
+    type === PostsEntity.TYPE.VIDEO &&
+    (video_content === undefined || video_content === null)
+  ) {
+    return res.status(500).json(APIErrorResult('Please enter video content.'))
+    // return res.status(500).json(APIErrorResult('video content 를 입력해주세요.'))
+  }
+  if (
+    type === PostsEntity.TYPE.ARTICLE &&
+    (article_content === undefined || article_content === null)
+  ) {
+    return res.status(500).json(APIErrorResult('Please enter article content.'))
+    // return res.status(500).json(APIErrorResult('article content 를 입력해주세요.'))
+  }
+  const postsService = Container.get(PostsService)
+  try {
+    let _image_content = null
+    let _video_content = null
+    let _article_content = null
+    if (type === PostsEntity.TYPE.IMAGE) {
+      if (image_content !== undefined && image_content !== null) {
+        const { id: content_id, image, title, description } = image_content
+        const typeImagesService = Container.get(TypeImagesService)
+        if (content_id !== null) {
+          await typeImagesService.updateTypeImage(
+            content_id,
+            image,
+            title,
+            description
+          )
+          _image_content = await typeImagesService.getTypeImageById(content_id)
+          console.log('Update Type Image : ', _image_content)
+        } else {
+          _image_content = await typeImagesService.createTypeImage(
+            image,
+            title,
+            description
+          )
+          console.log('Create Type Image : ', _image_content)
+        }
+      }
+    }
+    if (type === PostsEntity.TYPE.VIDEO) {
+      if (video_content !== undefined && video_content !== null) {
+        const {
+          id: content_id,
+          video_id,
+          poster,
+          title,
+          description
+        } = video_content
+        const typeVideosService = Container.get(TypeVideosService)
+        if (content_id !== null) {
+          await typeVideosService.updateTypeVideo(
+            content_id,
+            video_id,
+            poster,
+            title,
+            description
+          )
+          _video_content = await typeVideosService.getTypeVideoById(content_id)
+          console.log('Update Type Video : ', _video_content)
+        } else {
+          _video_content = await typeVideosService.createTypeVideo(
+            video_id,
+            poster,
+            title,
+            description
+          )
+          console.log('Create Type Video : ', _video_content)
+        }
+      }
+    }
+    if (type === PostsEntity.TYPE.ARTICLE) {
+      if (article_content !== undefined && article_content !== null) {
+        const {
+          id: content_id,
+          cover,
+          title,
+          overview,
+          content
+        } = article_content
+        const articlesService = Container.get(TypeArticlesService)
+        if (content_id !== null) {
+          await articlesService.updateTypeArticle(
+            content_id,
+            cover,
+            title,
+            overview,
+            content
+          )
+          _article_content = await articlesService.getTypeArticleById(
+            content_id
+          )
+          console.log('Update Type Article : ', _article_content)
+        } else {
+          _article_content = await articlesService.createTypeArticle(
+            cover,
+            title,
+            overview,
+            content
+          )
+          console.log('Create Type Article : ', _article_content)
+        }
+      }
+    }
+    const post = await postsService.updatePost(
+      id,
+      type,
+      thumbnail,
+      title,
+      city,
+      _image_content,
+      _video_content,
+      _article_content,
+      published_at,
+      status
+    )
+    console.log('Update Post', post)
+    return res.json(APIResult({ result: true }))
+  } catch (error) {
+    return res.status(500).json(APIErrorResult(error.message))
+  }
 })
 
-router.delete('/post/:post_id', (req: Request, res: Response) => {
-  return
+router.delete('/post/:post_id', async (req: Request, res: Response) => {
+  const id = APIUtils.numberOrThrow(Number(req.params.post_id))
+  const postsService = Container.get(PostsService)
+  try {
+    await postsService.deletePost(id)
+    return res.json(APIResult({ result: true }))
+  } catch (error) {
+    return res.status(500).json(APIErrorResult(error.message))
+  }
 })
 
 export default router
@@ -215,7 +411,7 @@ const setPostData = async (body: any) => {
     image_content: image_content_data = null,
     video_content: video_content_data = null,
     article_content: article_content_data = null,
-    published_at: published_at_unix = moment(),
+    published_at: published_at_unix = moment().unix(),
     status = PostsEntity.STATUS.PRIVATE
   } = body
   const picturesService = Container.get(PicturesService)
@@ -228,7 +424,7 @@ const setPostData = async (body: any) => {
   if (image_content_data !== null) {
     const image = await picturesService.getPicture(image_content_data.image)
     image_content = {
-      id: null,
+      id: image_content_data.id || null,
       title: image_content_data.title,
       description: image_content_data.description,
       image
@@ -237,7 +433,7 @@ const setPostData = async (body: any) => {
   if (video_content_data !== null) {
     const poster = await picturesService.getPicture(video_content_data.poster)
     video_content = {
-      id: null,
+      id: video_content_data.id || null,
       video_id: video_content_data.video_id,
       title: video_content_data.title,
       description: video_content_data.description,
@@ -247,14 +443,14 @@ const setPostData = async (body: any) => {
   if (article_content_data !== null) {
     const cover = await picturesService.getPicture(article_content_data.cover)
     article_content = {
-      id: null,
+      id: article_content_data.id || null,
       cover,
       title: article_content_data.title,
       overview: article_content_data.overview,
       content: article_content_data.content
     }
   }
-  const published_at = moment(published_at_unix).toDate()
+  const published_at = moment.unix(published_at_unix).toDate()
   return {
     type,
     thumbnail,
