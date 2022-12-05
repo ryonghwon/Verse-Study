@@ -8,7 +8,7 @@ import config from '../../../../config'
 import PicturesService from '../../../common/services/pictures.service'
 import { APIErrorResult, APIResult } from '../APIResult'
 import APIUtils from '../../../utils/APIUtils'
-import PicturesEntity from "../../../common/entities/pictures.entity";
+import PicturesEntity from '../../../common/entities/pictures.entity'
 
 const router = Router()
 

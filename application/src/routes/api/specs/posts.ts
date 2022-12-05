@@ -187,8 +187,10 @@ router.get('/post/:post_id', async (req: Request, res: Response) => {
   const postsService = Container.get(PostsService)
   try {
     const post = await postsService.getPostById(id, status)
-    const previousPost = await postsService.getPreviousPostById(id, status)
-    const nextPost = await postsService.getNextPostById(id, status)
+    // const previousPost = await postsService.getPreviousPostById(id, status)
+    // const nextPost = await postsService.getNextPostById(id, status)
+    const previousPost = await postsService.getPreviousPostByIdAfterOrderByPublishedAt(id, status)
+    const nextPost = await postsService.getNextPostByIdAfterOrderByPublishedAt(id, status)
     const pagination = {
       previous: previousPost,
       next: nextPost
