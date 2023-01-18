@@ -1,30 +1,46 @@
-var tabMenuEl = document.querySelector('#tab-menu'),
-    btnTabMenuEl = tabMenuEl.querySelectorAll('a'),
-    tabContainerEl = document.querySelector('.tab-container'),
-    tabContentEl = tabContainerEl.querySelectorAll('.tab-content'),
-    cuId = 0,
-    exId = null;
+const APP = {
+    _cuId: 0,
+    _exId: null,
 
-btnTabMenuEl = Array.prototype.slice.call(btnTabMenuEl);
-function onClickTabMenu(e) {
-    e.preventDefault();
-    var el = e.currentTarget, index = btnTabMenuEl.indexOf(el);
-    if(!el.classList.contains('selected')) {
-        cuId = index;
-        btnTabMenuEl[exId].classList.remove('selected');
-        tabContentEl[exId].classList.remove('selected');
-        el.classList.add('selected');
-        tabContentEl[cuId].classList.add('selected');
-        exId = cuId;
+    init() {
+        this.layout();
+        this.addEvent();
+        this.reset();
+    },
+    layout() {
+        this.tabMenuEls = document.querySelectorAll('#tab-menu li a');
+        this.tabContentEls = document.querySelectorAll('#tab-contents .tab-content');
+    },
+    addEvent() {
+        this.tabMenuEls.forEach((el) => {
+            el.addEventListener('click', this.handleClickTabMenuEls.bind(this));
+        });
+    },
+    reset() {
+        this._cuId = 0;
+        this._exId = this._cuId;
+    },
+    handleClickTabMenuEls(e) {
+        e.preventDefault();
+        if (this._isAni) {
+            return
+        }
+        const el = e.currentTarget;
+        if (el.classList.contains('selected')) {
+            return
+        }
+        const idx = [...this.tabMenuEls].indexOf(el);
+        if (!el.classList.contains('selected')) {
+            if (this._exId !== null) {
+                this.tabMenuEls[this._exId].classList.remove('selected');
+                this.tabContentEls[this._exId].classList.remove('selected');
+            }
+            this._cuId = idx;
+            this.tabMenuEls[this._cuId].classList.add('selected');
+            this.tabContentEls[this._cuId].classList.add('selected');
+            this._exId = this._cuId;
+        }
     }
 }
-function addEvent() {
-    for(var i = 0; i < btnTabMenuEl.length; i++) {
-        btnTabMenuEl[i].addEventListener("click", onClickTabMenu);
-    }
-}
-function init() {
-    exId = cuId;
-    addEvent();
-}
-init();
+
+APP.init();
