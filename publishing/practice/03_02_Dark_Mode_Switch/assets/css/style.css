@@ -240,6 +240,20 @@ select, button {
     pointer-events: none
 }
 
+input#mode{
+    visibility: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    pointer-events: none;
+    clip: rect(0 0 0 0);
+}
+
 section.section {
     display: flex;
     width: 100vw; /* view port width - 100vw */
@@ -261,6 +275,32 @@ section.section h1.headline {
     line-height: 4rem /* 12px -> 48px */
 }
 
+section.section h1.headline span#text-light{
+    display: inline-block;
+}
+
+section.section h1.headline span#text-dark{
+    display: none;
+}
+
+input#mode:checked ~ section.section h1.headline span#text-light{
+    display: none;
+}
+
+input#mode:checked ~ section.section h1.headline span#text-dark{
+    display: inline-block;
+}
+
+/*section.section h1.headline::before{*/
+/*    content: 'Light';*/
+/*    !*display: inline-block;*!*/
+/*    !*vertical-align: top;*!*/
+/*}*/
+
+/*input#mode:checked ~ section.section h1.headline::before{*/
+/*    content: 'Dark';*/
+/*}*/
+
 section.section p.copy {
     font-size: 1.5rem; /* 12px -> 18px */
     line-height: 2rem /* 12px -> 24px */
@@ -268,20 +308,6 @@ section.section p.copy {
 
 section.section h1.headline + p.copy {
     margin-top: 16px
-}
-
-input#mode{
-    visibility: hidden;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 0;
-    height: 0;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    pointer-events: none;
-    clip: rect(0 0 0 0);
 }
 
 input#mode:checked ~ section.section {
@@ -304,6 +330,7 @@ input#mode:checked ~ section.section {
     border-radius: 8px;
     line-height: 16px;
     text-indent: -9999px;
+    cursor: pointer;
     transition: background-color 180ms ease-in-out;
     -webkit-transition: background-color 180ms ease-in-out;
     -moz-transition: background-color 180ms ease-in-out;
