@@ -26,7 +26,7 @@ const APP = {
     setTheme() {
         const { documentElement: htmlEl } = document
         THEMES.forEach((theme) => {
-            htmlEl.classList.remove(`mode-${theme}`);
+            htmlEl.classList.remove(`theme-${theme}`);
         });
         htmlEl.classList.add(`theme-${this._theme}`);
         this.themeNameEl.innerText = this._theme;
