@@ -68,18 +68,23 @@ const APP = {
         // for (let i = 0; i < this._max; i++) {
             // console.log(i);
         // }
-        this.dotNavListEl.innerHTML = '';
+        // this.dotNavListEl.innerHTML = '';
+        // [...Array(this._max).keys()].forEach((idx) => {
+        //     const itemEl = document.createElement('li');
+        //     // <li></li>
+        //     const btnDotEl = document.createElement('button');
+        //     // <button></button>
+        //     btnDotEl.type = 'button';
+        //     btnDotEl.classList.add('btn-dot');
+        //     btnDotEl.innerText = `Image ${idx + 1}`;
+        //     itemEl.appendChild(btnDotEl);
+        //     this.dotNavListEl.appendChild(itemEl);
+        // });
+        let html = '';
         [...Array(this._max).keys()].forEach((idx) => {
-            const itemEl = document.createElement('li');
-            // <li></li>
-            const btnDotEl = document.createElement('button');
-            // <button></button>
-            btnDotEl.type = 'button';
-            btnDotEl.classList.add('btn-dot');
-            btnDotEl.innerText = `Image ${idx + 1}`;
-            itemEl.appendChild(btnDotEl);
-            this.dotNavListEl.appendChild(itemEl);
+            html += `<li><button type="button" class="btn-dot">Image ${idx + 1}</button></li>`;
         });
+        this.dotNavListEl.innerHTML = html;
         this.btnDotEls = this.dotNavListEl.querySelectorAll('button.btn-dot');
     },
     resizeGallery() {
