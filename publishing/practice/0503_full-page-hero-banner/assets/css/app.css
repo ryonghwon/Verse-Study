@@ -320,7 +320,10 @@ select, button {
 .hero-banner .banner-container .banner-item .image-area figure img {
     display: inline-block;
     width: 100%;
+    /*height: 100%;*/
     vertical-align: top;
+    /*object-fit: contain;*/
+    /*object-fit: cover;*/
     user-select: none;
     -webkit-user-select: none;
     user-drag: none;

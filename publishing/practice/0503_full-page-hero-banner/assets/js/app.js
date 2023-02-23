@@ -1,7 +1,7 @@
-// gsap.registerPlugin(TextPlugin);
+gsap.registerPlugin(TextPlugin);
 
 const APP = {
-    _infinite: true,
+    _infinite: false,
     _isAni: false,
     _bannerWidth: null,
     _bannerHeight: null,
@@ -50,6 +50,7 @@ const APP = {
     },
     addEvent() {
         window.addEventListener('resize', this.handleResizeWindow.bind(this));
+        // window.addEventListener('scroll', this.handleScrollWindow.bind(this));
         this.btnPaddleEls.forEach((el) => {
             el.addEventListener('click', this.handleClickBtnPaddleEl.bind(this));
         });
@@ -63,8 +64,10 @@ const APP = {
         if (this._infinite) {
             this.setInfiniteBanner();
         }
-        this.resizeBanner();
-        this.changeImage();
+        // this.resizeBanner();
+        // this.changeImage();
+        window.dispatchEvent(new Event('resize'));
+        // window.dispatchEvent(new Event('scroll'));
     },
     setInfiniteBanner() {
         if (!this._infinite) {
@@ -79,6 +82,36 @@ const APP = {
         this.bannerItemEls = this.bannerContainerEl.querySelectorAll('.banner-item');
     },
     resizeBanner() {
+        // 브라우저 화면의 width, height.
+        const { innerWidth: width, innerHeight: height } = window;
+        // image 사이즈를 계산.
+        let imageWidth = width;
+        // 1200(원본 이미지의 width) : 800(원본 이미지의 height) = x : y
+        // this._originalImageWidth : this._originalImageHeight = imageWidth : ?
+        // ? = x * 800 / 1200
+        // imageHeight = imageWidth * this._originalImageHeight / this._originalImageWidth
+        let imageHeight = Math.round((imageWidth * this._originalImageHeight) / this._originalImageWidth);
+        // 계산한 이미지 사이즈-높이가 브라우저의 높이보다 작아지면 브라우저 높이를 기준으로 다시 계산 필요.
+        if (imageHeight <= height) {
+            imageHeight = height;
+            // 1200(원본 이미지의 width) : 800(원본 이미지의 height) = x : y
+            // this._originalImageWidth : this._originalImageHeight = ? : imageHeight
+            // imageWidth = imageHeight * this._originalImageWidth / this._originalImageHeight
+            imageWidth = Math.round((imageHeight * this._originalImageWidth) / this._originalImageHeight)
+        }
+        // 이미지를 브라우저의 가운데로 위치시키기 위한 계산식.
+        const marginTop = height / 2 - imageHeight / 2;
+        const marginLeft = width / 2 - imageWidth / 2;
+        this._bannerWidth = width;
+        this._bannerHeight = height;
+        this._containerWidth = this._bannerWidth * this._max;
+        gsap.set(this.heroBannerEl, { width: this._bannerWidth, height: this._bannerHeight });
+        gsap.set(this.bannerContainerEl, { width: this._containerWidth, height: this._bannerHeight });
+        gsap.set(this.bannerItemEls, { width: this._bannerWidth, height: this._bannerHeight });
+        this.bannerItemEls.forEach((el) => {
+            const imageEl = el.querySelector('.image-area figure img');
+            gsap.set(imageEl, { width: imageWidth, height: imageHeight, marginTop, marginLeft });
+        });
     },
     autoPlayBanner() {
         clearInterval(this._timer);
@@ -122,6 +155,8 @@ const APP = {
             return
         }
         this._isAni = true;
+        const itemEl = this.bannerItemEls.item(this._cuId);
+        this.itemContentInit(itemEl);
         gsap.to(this.bannerContainerEl, {
             x, duration, ease, onComplete: () => {
                 if (this._infinite) {
@@ -129,12 +164,79 @@ const APP = {
                     gsap.set(this.bannerContainerEl,  { x })
                 }
                 this.checkPaddleNav();
+                this.itemContentAppear(itemEl, null, () => {
+                    this._exId = this._cuId;
+                    this._isAni = false
+                });
             }
         });
     },
     itemContentInit(el, cloneEl = null) {
+        const eyebrowEl = el.querySelector('.eyebrow');
+        const headlineEl = el.querySelector('.headline');
+        const headlineSpanEls = headlineEl.querySelectorAll('span');
+        const copyEl = el.querySelector('.copy');
+        headlineSpanEls.forEach((spanEl) => {
+            spanEl.classList.remove('active');
+            // 데이터 속성을 부여해서 기억할 수 있게.
+            spanEl.dataset.text = spanEl.innerText;
+            spanEl.innerText = '';
+        });
+        gsap.set(eyebrowEl, { x: 20, autoAlpha: 0 });
+        gsap.set(headlineEl, { x: 40, autoAlpha: 0 });
+        gsap.set(headlineSpanEls, { text: '' })
+        gsap.set(copyEl, { y: 20, autoAlpha: 0 });
     },
     itemContentAppear(el, cloneEl = null, callback) {
+        const eyebrowEl = el.querySelector('.eyebrow');
+        const headlineEl = el.querySelector('.headline');
+        const headlineSpanEls = headlineEl.querySelectorAll('span');
+        const copyEl = el.querySelector('.copy');
+        // gsap.to(eyebrowEl, { x: 0, autoAlpha: 1, duration: 0.15 });
+        // gsap.to(headlineEl, { x: 0, autoAlpha: 1, duration: 0.25, delay: 0.1 });
+        // gsap.to(copyEl, { y: 0, autoAlpha: 1, duration: 0.35, delay: 0.2, onComplete: () => {
+        //     this._exId = this._cuId;
+        //     this._isAni = false;
+        // }});
+        const tl = gsap.timeline();
+        tl.addLabel('first')
+            .to(eyebrowEl, { x: 0, autoAlpha: 1, duration: 0.15, ease: 'sine.out' }, 'first')
+            .addLabel('second', '-=0.1')
+            .to(headlineEl, { x: 0, autoAlpha: 1, duration: 0.25, ease: 'sine.inOut' }, 'second')
+            .addLabel('third', '-=0.05')
+            .to(headlineSpanEls, {
+                // text: 'hello'
+                text: (_, spanEl) => {
+                    return spanEl.dataset.text
+                },
+                duration: (_, spanEl) => {
+                    return spanEl.dataset.text.length * 0.02
+                },
+                // stagger: {
+                //     each: 0.1,
+                //     onComplete: function() {
+                //         const spanEl = this.targets()[0];
+                //         spanEl.classList.add('active');
+                //     }
+                // },
+                stagger: 0.1,
+                onComplete: () => {
+                    headlineSpanEls.forEach((spanEl) => {
+                        spanEl.classList.add('active');
+                    })
+                }
+            }, 'second')
+            .to(copyEl, { y: 0, autoAlpha: 1, duration: 0.35, ease: 'circ.out' }, 'third')
+        tl.eventCallback('onComplete', () => {
+            gsap.set(eyebrowEl, { clearProps: 'all' });
+            // gsap.set(eyebrowEl, { clearProps: 'opacity, transform, visibility' });
+            gsap.set(headlineEl, { clearProps: 'all' });
+            gsap.set(headlineSpanEls, { clearProps: 'all' });
+            gsap.set(copyEl, { clearProps: 'all' });
+            if (callback) {
+                callback();
+            }
+        });
     },
     checkPaddleNav() {
         if (this._infinite) {
