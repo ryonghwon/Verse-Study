@@ -1,20 +1,21 @@
 const APP = {
     _fps: 24,
-    // _col: 8,
-    // _row: 4,
-    // _max: 32,
+
+    _col: 8,
+    _row: 4,
+    _max: 32,
     // _image: {
     //     width: 904,
     //     height: 468
     // },
-    // _imageWidth: 904,
-    // _imageHeight: 468,
+    _imageWidth: 904,
+    _imageHeight: 468,
 
-    _col: 7,
-    _row: 7,
-    _max: 48,
-    _imageWidth: 1008,
-    _imageHeight: 1008,
+    // _col: 7,
+    // _row: 7,
+    // _max: 48,
+    // _imageWidth: 1008,
+    // _imageHeight: 1008,
 
     _cuId: 0,
     _isReverse: false,
@@ -26,8 +27,8 @@ const APP = {
         this.reset();
     },
     layout() {
-        // this.clipEl = document.querySelector('#clip');
-        this.clipEl = document.querySelector('#minion');
+        this.clipEl = document.querySelector('#clip');
+        // this.clipEl = document.querySelector('#minion');
     },
     addEvent() {
         this.clipEl.addEventListener('mouseenter', this.handleMouseEnterClipEl.bind(this));
