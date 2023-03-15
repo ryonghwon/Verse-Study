@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image Frame Control with Scroll Event</title>
+  <link rel="stylesheet" type="text/css" href="/assets/css/app.css" />
+</head>
+<body>
+<main id="main" role="main" class="main">
+  <div class="section-space">&nbsp;</div>
+  <section id="hero" class="section-hero">
+    <div class="sticky-wrap">
+      <div class="sticky-inner">
+        <div id="product" class="product">
+          <div id="product-visual" class="product-visual">
+            <canvas id="frame-sequence" class="frame-sequence"></canvas>
+            <picture id="cups" class="cups">
+              <source srcset="/assets/img/airpods-max_cups.png" />
+              <img src="/assets/img/airpods-max_cups.png" class="cups-image" alt="Airpods Max" />
+            </picture>
+            <picture id="frame" class="frame">
+              <source srcset="/assets/img/airpods-max_frame.png" />
+              <img src="/assets/img/airpods-max_frame.png" class="frame-image" alt="Airpods Max" />
+            </picture>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="section-space">&nbsp;</div>
+</main>
+<script type="text/javascript" src="/assets/js/app.js"></script>
+</body>
+</html>
