@@ -241,7 +241,7 @@ select, button {
 
 .section-space {
     width: 100%;
-    height: 100vh;
+    height: 75vh;
 }
 
 section.section-hero {
@@ -285,6 +285,10 @@ section.section-hero .product .product-visual {
     left: 0;
     width: 100%;
     height: 100%;
+    transform-origin: top center;
+    -webkit-transform-origin: top center;
+    -moz-transform-origin: top center;
+    will-change: transform
 }
 
 section.section-hero .product .product-visual canvas.frame-sequence,
@@ -296,14 +300,34 @@ section.section-hero .product .product-visual picture.frame img {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    will-change: transform
 }
 
 section.section-hero .product .product-visual canvas.frame-sequence {
     z-index: 100;
 }
 
+section.section-hero .product .product-visual canvas.frame-sequence {
+    visibility: visible;
+    opacity: 1;
+}
 
+section.section-hero .product .product-visual canvas.frame-sequence.hidden {
+    visibility: hidden;
+    opacity: 0;
+}
 
+section.section-hero .product .product-visual picture.cups,
+section.section-hero .product .product-visual picture.frame {
+    visibility: hidden;
+    opacity: 0;
+}
+
+section.section-hero .product .product-visual picture.cups.visible,
+section.section-hero .product .product-visual picture.frame.visible {
+    visibility: visible;
+    opacity: 1;
+}
 
 
 
